@@ -2,11 +2,11 @@
 
 Python Version: 3.6
 Source: http://openpixelcontrol.org/
-	https://github.com/scanlime/fadecandy/blob/master/doc/fc_protocol_opc.md
+		https://github.com/scanlime/fadecandy/blob/master/doc/fc_protocol_opc.md
 
 
 Protocol Specification
-| Channel | Command | Lenght               | Data    |
+| Channel | Command | Length               | Data    |
 |  -----  |  -----  |         -----        |  ----   |
 | 0 - 255 | 0 - 255 | high byte | low byte | n bytes |
 
@@ -81,7 +81,7 @@ class StupidOPC():
 		try:
 			self.s.sendto(packet, (self.TARGET_IP, self.UDP_PORT))
 		except Exception as e:
-			print("ERROR: Socket error with exception: %s" % e)
+			print("ERROR: Socket error with exception: {}".format(e))
 
 	def close(self):
 		"""Close UDP socket."""
@@ -202,8 +202,7 @@ class StupidOPC():
 	def flash_all(self):
 		"""Sends 255's all across."""
 		packet = bytearray(self.PACKET_SIZE)
-		for i in range(self.PACKET_SIZE):
-			packet[i] = 255
+		[255 for i in packet]
 		self.set(packet)
 		self.show()
 
@@ -213,7 +212,16 @@ class StupidOPC():
 
 	@staticmethod
 	def shift_this(number, high_first=True):
-		"""Utility method: extracts MSB and LSB from number."""
+		"""Utility method: extracts MSB and LSB from number.
+
+		Args:
+		number - number to shift
+		high_first - MSB or LSB first (true / false)
+
+		Returns:
+		(high, low) - tuple with shifted values
+
+		"""
 		low = (number & 0xFF)
 		high = ((number >> 8) & 0xFF)
 		if (high_first):
@@ -225,7 +233,18 @@ class StupidOPC():
 
 	@staticmethod
 	def put_in_range(number, range_min, range_max, make_even=True):
-		"""Utility method: sets number in defined range."""
+		"""Utility method: sets number in defined range.
+
+		Args:
+		number - number to use
+		range_min - lowest possible number
+		range_max - highest possible number
+		make_even - should number be made even
+
+		Returns:
+		number - number in correct range
+
+		"""
 		if (number < range_min):
 			number = range_min
 		if (number > range_max):
@@ -252,22 +271,22 @@ if __name__ == '__main__':
 	signal.signal(signal.SIGINT, signal_handler)
 
 	# Define settings
-	target_ip = '127.0.0.1'
+	target_ip = '127.0.0.1'         # Address of the OPC Server
 	num_leds = 60
-	packet_size = num_leds * 60			# typical scenario with RGB leds
-	packet = bytearray(packet_size)
+	packet_size = num_leds * 3		# typical scenario with RGB leds
+	data = bytearray(packet_size)
 
-	# Create StupidOPC instance
+	# An OPC instance holds a target IP and a buffer of <packet_size>
 	o = StupidOPC(packet_size, target_ip)
 
-	# Print shows settigns
+	# Print shows settings
 	print(o)
 
 	# Create and set the whole buffer
 	data = [0, 255, 190] * num_leds		# is this some sort of turquoise?
 	o.set(data)
 
-	# ... or set single values
+	# ... or set single values (address, red value, green value, blue value)
 	o.set_rgb(13, 255, 255, 0)			# set pixel 13 to yellow
 
 	# send data once
@@ -276,7 +295,7 @@ if __name__ == '__main__':
 	# you can also send the data persistently
 	o.start()
 
-	time.sleep(5)   					# giving it some time to , demonstration purpose
+	time.sleep(3)   					# give it some time for demonstration purpose
 
 	# ...  and update as you go
 	o.set_rgb(13, 0, 255, 255)
